@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset="utf-8" />
+  <title>Hello world!</title>
+  <meta content="1"; http-equiv="refresh">
+  <link type="text/css" rel="stylesheet"
+        href="{{ url_for('static',
+              filename='hello.css')}}" />
+</head>
+<body>
+
+<div style="font-size:100px;text-align:center;">{{freezer}}</div>
+<div style="font-size:100px;text-align:center;">{{fridge}}</div>
+<div style="font-size:75px;text-align:center;">{{date}}</div>
+<div style="font-size:75px;text-align:center;">{{time}}</div>
+
+</body>
+</html>
