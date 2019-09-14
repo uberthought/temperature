@@ -10,6 +10,8 @@ from datetime import datetime
 
 import csv
 
+import numpy as np
+
 app = dash.Dash()
 
 app.layout = html.Div(children=[
@@ -53,24 +55,13 @@ def update_temperature_div(n_intervals):
     [dash.dependencies.Input('interval-component', 'n_intervals')])
 def update_graph(n_intervals):
 
-    timestamps = []
-    temperatures = []
-    humidities = []
-
     with open('temperature.csv', newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
 
-        foo = list(reader)
-        for row in foo:
-            timestamp0 = row[0]
-            temperature0 = float(row[1])
-            humidity0 = float(row[2])
-
-            temperature0 = temperature0 * 1.8 + 32
-
-            timestamps.append(timestamp0)
-            temperatures.append(temperature0)
-            humidities.append(humidity0)
+        foo = np.array(list(reader))
+        timestamps = foo[:,0]
+        temperatures = foo[:,1].astype(float) * 1.8 + 32
+        humidities = foo[:,2].astype(float)
 
     return {
         'data': [
