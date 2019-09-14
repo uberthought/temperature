@@ -11,8 +11,8 @@ app = flask.Flask(__name__)
 def index():
     humid, temp = Adafruit_DHT.read_retry(DHT_SENSOR, DHT_PIN)
     temp = temp * 1.8 + 32
-    temp_str = '{0:.2f}'.format(temp) + 'F'
-    humid_str = '{0:.2f}'.format(humid) + '%'
+    temp_str = '{0:.1f}'.format(temp) + 'F'
+    humid_str = '{0:.1f}'.format(humid) + '%'
     freezer = temp_str+ '/' + humid_str
     date = str(datetime.datetime.now().strftime('%b %d %Y'))
     time = str(datetime.datetime.now().strftime('%-I:%M%p'))
