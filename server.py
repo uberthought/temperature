@@ -51,19 +51,29 @@ def update_graph(n_intervals):
 
         timestamps = []
         temperatures = []
+        last_temperature = 0
 
         for row in reader:
             try:
-                if row[0] < oldest:
+                timestamp = row[0]
+                temperature = float(row[1])
+
+                if timestamp < oldest:
                     continue
-                timestamps.append(row[0])
-                temperatures.append(float(row[1]) * 1.8 + 32)
+                if abs(last_temperature - temperature) > 50:
+                    continue
+
+                timestamps.append(timestamp)
+                temperatures.append(temperature * 1.8 + 32)
             except ValueError:
                 continue
-        
-#        foo = [r for r in foo if datetime.strptime(r[0], '%Y-%m-%d %H:%M:%S.%f') > oldest]
-#        temperatures = foo[:,1].astype(float) * 1.8 + 32
 
+#       temperatures = np.nparray(temperatures)
+        l = 20
+        box = np.ones(l)/l
+        temperatures = np.convolve(temperatures, box, mode='valid')
+        timestamps = timestamps[l:]
+        
     return {
         'data': [
             go.Scatter(x = timestamps, y = temperatures, name = 'temperature', yaxis='y1', line = dict(color='black')),
