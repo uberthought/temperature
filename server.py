@@ -62,17 +62,20 @@ def update_graph(n_intervals):
                     continue
                 if abs(last_temperature - temperature) > 50:
                     continue
+                if abs(temperature) > 1.0 and abs(last_temperature + temperature) < 0.2:
+                    continue
+
+                last_temperature = temperature
 
                 timestamps.append(timestamp)
                 temperatures.append(temperature * 1.8 + 32)
             except ValueError:
                 continue
 
-#       temperatures = np.nparray(temperatures)
-        l = 20
-        box = np.ones(l)/l
-        temperatures = np.convolve(temperatures, box, mode='valid')
-        timestamps = timestamps[l:]
+#        l = 20
+#        box = np.ones(l)/l
+#        temperatures = np.convolve(temperatures, box, mode='valid')
+#        timestamps = timestamps[l:]
         
     return {
         'data': [
