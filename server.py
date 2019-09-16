@@ -72,10 +72,10 @@ def update_graph(n_intervals):
             except ValueError:
                 continue
 
-#        l = 20
-#        box = np.ones(l)/l
-#        temperatures = np.convolve(temperatures, box, mode='valid')
-#        timestamps = timestamps[l:]
+        l = 9
+        box = np.ones(l)/l
+        temperatures = np.convolve(temperatures, box, mode='valid')
+        timestamps = timestamps[l:]
         
     return {
         'data': [
