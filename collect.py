@@ -2,21 +2,48 @@ import time
 from datetime import datetime
 import csv
 
-import Adafruit_DHT
+DIRECTORY='/sys/bus/w1/devices/'
+SENSOR0='28-0218405bd4ff'
+SENSOR1='28-021840573eff'
+FILENAME='w1_slave'
+TRIGGER=60
 
-DHT_SENSOR = Adafruit_DHT.DHT22
-DHT_PIN = 4
+def get_temperature(sensor):
+    try:
+        mytemp = ''
+        if sensor == 0:
+            sensor = SENSOR0
+        else:
+            sensor = SENSOR1
+        f = open(DIRECTORY + sensor + '/' + FILENAME, 'r')
+        line = f.readline() # read 1st line
+        crc = line.rsplit(' ',1)
+        crc = crc[1].replace('\n', '')
+        if crc=='YES':
+            line = f.readline() # read 2nd line
+            mytemp = line.rsplit('t=',1)
+        else:
+            mytemp = 99999
+        f.close()
+ 
+        return float(mytemp[1])/1000
+
+    except:
+        return 99999
+
 
 while True:
     now = datetime.now()
 
-    humidity0, temperature0 = Adafruit_DHT.read_retry(DHT_SENSOR, DHT_PIN)
+    temperature0 = get_temperature(0)
+    temperature1 = get_temperature(1)
     timestamp0 = now
 
-    with open('/home/pi/temperature/temperature.csv', 'a+', newline='') as csvfile:
-        spamwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        spamwriter.writerow([timestamp0, temperature0, humidity0])
+    if temperature0 != 99999 and temperature1 != 99999:
+        with open('/home/pi/temperature/temperature.csv', 'a+', newline='') as csvfile:
+            spamwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            spamwriter.writerow([timestamp0, temperature0, temperature1])
 
     now = datetime.now()
-    sleep_time = 5.0 - (now.second % 5 + now.microsecond/1000000.0)
+    sleep_time = TRIGGER - (now.second % TRIGGER + now.microsecond/1000000.0)
     time.sleep(sleep_time)

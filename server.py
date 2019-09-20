@@ -15,32 +15,35 @@ import numpy as np
 app = dash.Dash()
 
 app.layout = html.Div(children=[
-    html.Div(id='time-div', style={'font-size': '75px', 'text-align': 'center'}),
-    html.Div(id='temperature-div', style={'font-size': '75px', 'text-align': 'center'}),
-    dcc.Graph(id='example-graph', style={'height': '300px'}),
-    dcc.Interval(id='interval-component', interval=5*1000, n_intervals=1)
+    html.Div(id='text-div', style={'font-size': '75px', 'text-align': 'center'}),
+    dcc.Graph(id='temperature-graph', style={'height': '400px'}),
+    dcc.Interval(id='interval-component', interval=60*1000, n_intervals=1)
 ])
 
 @app.callback(
-    dash.dependencies.Output(component_id='time-div', component_property='children'),
+    dash.dependencies.Output(component_id='text-div', component_property='children'),
     [dash.dependencies.Input('interval-component', 'n_intervals')])
 def update_time_div(n_intervals):
-    return str(datetime.now().strftime('%-I:%M%p'))
+    time = str(datetime.now().strftime('%-I:%M%p'))
 
-@app.callback(
-    dash.dependencies.Output(component_id='temperature-div', component_property='children'),
-    [dash.dependencies.Input('interval-component', 'n_intervals')])
-def update_temperature_div(n_intervals):
     with open('/home/pi/temperature/temperature.csv', newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        row = list(reader)[-1]
-        temperature0 = float(row[1])
+        for row in reader:
+            try:
+                temperature0 = float(row[2])
+                temperature1 = float(row[1])
+            except ValueError:
+                continue
         temperature0 = temperature0 * 1.8 + 32
+        temperature1 = temperature1 * 1.8 + 32
 
-    return '{0:.1f}'.format(temperature0) + 'F'
+    temperature0 = '{0:.1f}'.format(temperature0)
+    temperature1 = '{0:.1f}'.format(temperature1)
+
+    return '{} {}/{}F'.format(time, temperature0, temperature1)
 
 @app.callback(
-    dash.dependencies.Output(component_id='example-graph', component_property='figure'),
+    dash.dependencies.Output(component_id='temperature-graph', component_property='figure'),
     [dash.dependencies.Input('interval-component', 'n_intervals')])
 def update_graph(n_intervals):
 
@@ -50,36 +53,33 @@ def update_graph(n_intervals):
         oldest = str(datetime.now() - timedelta(days=7))
 
         timestamps = []
-        temperatures = []
-        last_temperature = 0
+        temperature0s = []
+        temperature1s = []
 
         for row in reader:
             try:
                 timestamp = row[0]
-                temperature = float(row[1])
+                temperature0 = float(row[2])
+                temperature1 = float(row[1])
 
                 if timestamp < oldest:
                     continue
-                if abs(last_temperature - temperature) > 50:
-                    continue
-                if abs(temperature) > 1.0 and abs(last_temperature + temperature) < 0.2:
-                    continue
-
-                last_temperature = temperature
 
                 timestamps.append(timestamp)
-                temperatures.append(temperature * 1.8 + 32)
+                temperature0s.append(temperature0 * 1.8 + 32)
+                temperature1s.append(temperature1 * 1.8 + 32)
             except ValueError:
                 continue
 
-        l = 9
-        box = np.ones(l)/l
-        temperatures = np.convolve(temperatures, box, mode='valid')
-        timestamps = timestamps[l:]
+        #l = 9
+        #box = np.ones(l)/l
+        #temperatures = np.convolve(temperatures, box, mode='valid')
+        #timestamps = timestamps[l:]
         
     return {
         'data': [
-            go.Scatter(x = timestamps, y = temperatures, name = 'temperature', yaxis='y1', line = dict(color='black')),
+            go.Scatter(x = timestamps, y = temperature1s, name = 'fridge', line = dict(color='gray')),
+            go.Scatter(x = timestamps, y = temperature0s, name = 'freezer', line = dict(color='black')),
         ],
         'layout': go.Layout(yaxis=dict(title='temperature'))
     }
